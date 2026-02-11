@@ -89,68 +89,47 @@ async function fetchUsageData() {
     }
 }
 
-function createQuotaCard(quota) {
-    const card = document.createElement('div');
-    card.className = 'quota-card';
+function createQuotaCard(item) {
+    const percentage = item.limit > 0 && typeof item.used === 'number'
+        ? Math.min((item.used / item.limit) * 100, 100)
+        : 0;
 
-    const used = quota.used || 0;
-    const limit = quota.limit || 1;
-    const percentage = Math.min((used / limit) * 100, 100);
+    // Determine if we should show a progress bar or just text
+    const showProgressBar = item.limit > 0 && typeof item.used === 'number';
+    const statusClass = typeof item.used === 'string' && (item.used.toLowerCase().includes('error') || item.used.toLowerCase().includes('down')) ? 'status-error' : 'status-ok';
 
-    // Choose icon based on title or context
-    let iconClass = 'fa-solid fa-cube'; // default
-    let iconWrapperClass = 'icon-default';
-
-    const lowerTitle = quota.title.toLowerCase();
-    if (lowerTitle.includes('token')) {
-        iconClass = 'fa-solid fa-coins';
-        iconWrapperClass = 'icon-tokens';
-    } else if (lowerTitle.includes('request') || lowerTitle.includes('api')) {
-        iconClass = 'fa-solid fa-network-wired';
-        iconWrapperClass = 'icon-requests';
-    }
-
-    // Determine progress bar styling
-    let progressBarClass = '';
-    let percentageColor = '#10b981'; // success green
-
-    if (percentage > 90) {
-        progressBarClass = 'critical';
-        percentageColor = '#ef4444';
-    } else if (percentage > 75) {
-        progressBarClass = 'high';
-        percentageColor = '#f59e0b';
-    }
-
-    // Format reset time
-    const resetTime = quota.resetTime ? new Date(quota.resetTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never';
-
-    card.innerHTML = `
-        <div class="quota-header">
-            <div class="icon-wrapper ${iconWrapperClass}">
-                <i class="${iconClass}"></i>
+    const cardHTML = `
+        <div class="quota-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fa-solid fa-server"></i>
+                </div>
+                <div class="card-title">
+                    <h3>${item.title}</h3>
+                    ${item.tooltip ? `<span class="tooltip-icon" title="${item.tooltip}"><i class="fa-regular fa-circle-question"></i></span>` : ''}
+                    <p class="limit-text">${item.limit > 0 ? `Limit: ${formatNumber(item.limit)}` : ''}</p>
+                </div>
             </div>
-            <div style="text-align: right;">
-                <h3 class="quota-title">${quota.title}</h3>
-                <span class="quota-limit">Limit: ${formatNumber(limit)}</span>
+            
+            <div class="usage-stats">
+                <h2 class="${statusClass}">${typeof item.used === 'number' ? formatNumber(item.used) : item.used} <span class="unit">${item.unit_text}</span></h2>
+                ${showProgressBar ? `<span class="percentage">${percentage.toFixed(1)}%</span>` : ''}
             </div>
-        </div>
-        
-        <div class="usage-stats">
-            <span class="current-usage">${formatNumber(used)}</span>
-            <span class="percentage-badge" style="color: ${percentageColor}">${percentage.toFixed(1)}%</span>
-        </div>
 
-        <div class="progress-container">
-            <div class="progress-bar ${progressBarClass}" style="width: ${percentage}%"></div>
-        </div>
-
-        <div class="reset-info">
-            <i class="fa-regular fa-clock"></i>
-            <span>Resets: ${resetTime}</span>
+            ${showProgressBar ? `
+            <div class="progress-container">
+                <div class="progress-bar" style="width: ${percentage}%"></div>
+            </div>
+            ` : ''}
+            
+            <div class="reset-info">
+                <i class="fa-regular fa-clock"></i> Updates every 15 min
+            </div>
         </div>
     `;
-    return card;
+    const card = document.createElement('div');
+    card.innerHTML = cardHTML;
+    return card.firstElementChild;
 }
 
 function formatNumber(num) {
@@ -159,3 +138,5 @@ function formatNumber(num) {
     }
     return num.toLocaleString();
 }
+
+
