@@ -1,0 +1,52 @@
+name: Update Z.ai Usage Data
+
+on:
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+  schedule:
+    # Runs every 15 minutes. For more info on cron syntax: https://crontab.guru/#*/15_*_*_*_*
+    - cron: '*/15 * * * *'
+
+jobs:
+  fetch-and-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }} # Use a PAT for pushing
+
+      - name: Fetch usage data from Z.ai API
+        id: fetch-data
+        run: |
+          # ⚠️ IMPORTANT: You MUST verify this API endpoint is correct for your plan.
+          # This is an educated guess based on common API structures.
+          API_ENDPOINT="https://open.bigmodel.cn/api/paas/v4/usage"
+          
+          # Fetch data and format it into a JSON file
+          # We use a simple curl to fetch the data. 
+          # If the API response is already a JSON object that script.js expects (an array of quotas), 
+          # then we wrap it in a structure that includes lastUpdated.
+          
+          curl -X GET "$API_ENDPOINT" \
+            -H "Authorization: Bearer ${{ secrets.ZAI_API_KEY }}" \
+            | jq '{
+                lastUpdated: now | strftime("%Y-%m-%dT%H:%M:%S%z"),
+                quotas: .
+              }' > usage.json
+          
+          echo "Data fetched and saved to usage.json"
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add usage.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Automated update: Refresh usage data"
+            git push
+          fi
