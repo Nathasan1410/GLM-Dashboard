@@ -47,11 +47,12 @@ def main():
         "Content-Type": "application/json"
     }
 
-    # Minimal payload to ping the model
+    # Use 'glm-4-flash' as it is often free/cheaper and more likely to be available
+    # Increased max_tokens to 5 to avoid potential boundary issues with 1
     payload = {
-        "model": "glm-4",
+        "model": "glm-4-flash",
         "messages": [{"role": "user", "content": "ping"}],
-        "max_tokens": 1
+        "max_tokens": 5
     }
 
     try:
@@ -62,6 +63,11 @@ def main():
         # Calculate latency in milliseconds
         latency_ms = int((end_time - start_time) * 1000)
         
+        # DEBUG: Print the response content for debugging 400 errors
+        if response.status_code >= 400:
+             print(f"DEBUG: API Error {response.status_code}", file=sys.stderr)
+             print(f"DEBUG: Response Body: {response.text}", file=sys.stderr)
+
         response.raise_for_status()
         
         # If we get here, the API is working
@@ -76,21 +82,21 @@ def main():
                     "used": api_status,
                     "limit": 0,
                     "unit_text": "State",
-                    "tooltip": "Verifies that your API Key is valid and the Z.ai service is reachable."
+                    "tooltip": "Verifies that your API Key is working via glm-4-flash."
                 },
                 {
                     "title": "Latency",
                     "used": latency_ms,
-                    "limit": 1000, # Arbitrary 'good' limit for visual bar
+                    "limit": 1000, 
                     "unit_text": "ms",
-                    "tooltip": "Round-trip time to generate a minimal response."
+                    "tooltip": "Round-trip time to generate a response."
                 },
                 {
                     "title": "Model Reachability",
-                    "used": "GLM-4",
+                    "used": "GLM-4 Flash",
                     "limit": 0,
                     "unit_text": "Verified",
-                    "tooltip": "Successfully connected to the GLM-4 model."
+                    "tooltip": "Successfully connected to the GLM-4 Flash model."
                 }
             ]
         }
@@ -108,11 +114,18 @@ def main():
                     "used": "Error",
                     "limit": 0,
                     "unit_text": str(e.response.status_code)
+                },
+                {
+                    "title": "Error Details",
+                    "used": "Check Logs",
+                    "limit": 0,
+                    "unit_text": "Action Logs",
+                    "tooltip": "See GitHub Action logs for full error details."
                 }
             ]
         }
         print(json.dumps(output, indent=4))
-        sys.exit(0) # Exit cleanly so the workflow doesn't 'fail', but updates the dashboard with the error state
+        sys.exit(0) 
         
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
