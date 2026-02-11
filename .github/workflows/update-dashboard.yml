@@ -18,25 +18,22 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }} # Use a PAT for pushing
 
-      - name: Fetch usage data from Z.ai API
-        id: fetch-data
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
         run: |
-          # ⚠️ IMPORTANT: You MUST verify this API endpoint is correct for your plan.
-          # This is an educated guess based on common API structures.
-          API_ENDPOINT="https://open.bigmodel.cn/api/paas/v4/usage"
-          
-          # Fetch data and format it into a JSON file
-          # We use a simple curl to fetch the data. 
-          # If the API response is already a JSON object that script.js expects (an array of quotas), 
-          # then we wrap it in a structure that includes lastUpdated.
-          
-          curl -X GET "$API_ENDPOINT" \
-            -H "Authorization: Bearer ${{ secrets.ZAI_API_KEY }}" \
-            | jq '{
-                lastUpdated: now | strftime("%Y-%m-%dT%H:%M:%S%z"),
-                quotas: .
-              }' > usage.json
-          
+          python -m pip install --upgrade pip
+          pip install requests pyjwt
+
+      - name: Fetch usage data
+        id: fetch-data
+        env:
+          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+        run: |
+          python fetch_usage.py > usage.json
           echo "Data fetched and saved to usage.json"
 
       - name: Commit and push changes

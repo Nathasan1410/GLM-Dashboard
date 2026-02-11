@@ -48,7 +48,7 @@ function setupRefreshButton() {
         } catch (error) {
             console.error(error);
             alert(`Error: ${error.message}. Check your PAT and try again.`);
-            localStorage.removeItem('gh_pat'); // Clear invalid token
+            // localStorage.removeItem('gh_pat'); // Keep the token, it might be a temporary error
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-sync"></i> Refresh Data';
         }
