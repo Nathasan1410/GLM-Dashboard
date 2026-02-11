@@ -1,32 +1,13 @@
 import os
-import time
-import jwt
-import requests
-import json
 import sys
-import warnings
+import json
+import time
 
-# Suppress the weak key warning from pyjwt
-warnings.filterwarnings("ignore", category=UserWarning, module='jwt')
-
-def generate_token(apikey: str, exp_seconds: int):
-    try:
-        id, secret = apikey.split(".")
-    except Exception as e:
-        raise Exception("Invalid API Key format", e)
-
-    payload = {
-        "api_key": id,
-        "exp": int(round(time.time() * 1000)) + exp_seconds * 1000,
-        "timestamp": int(round(time.time() * 1000)),
-    }
-
-    return jwt.encode(
-        payload,
-        secret.encode("utf-8"),
-        algorithm="HS256",
-        headers={"alg": "HS256", "sign_type": "SIGN"},
-    )
+try:
+    from zhipuai import ZhipuAI
+except ImportError:
+    print("Error: zhipuai module not found. Install it with `pip install zhipuai`", file=sys.stderr)
+    sys.exit(1)
 
 def main():
     api_key = os.environ.get("ZAI_API_KEY")
@@ -34,46 +15,25 @@ def main():
         print("Error: ZAI_API_KEY environment variable not set", file=sys.stderr)
         sys.exit(1)
 
-    try:
-        token = generate_token(api_key, 60)
-    except Exception as e:
-        print(f"Error generating token: {e}", file=sys.stderr)
-        sys.exit(1)
-
-    # API Endpoint for Chat Completions (used as a ping)
-    url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
-
-    # Use 'glm-4-flash' as it is often free/cheaper and more likely to be available
-    # Increased max_tokens to 5 to avoid potential boundary issues with 1
-    payload = {
-        "model": "glm-4-flash",
-        "messages": [{"role": "user", "content": "ping"}],
-        "max_tokens": 5
-    }
+    # Use the specific endpoint for Z.ai Coding Plan
+    client = ZhipuAI(
+        api_key=api_key, 
+        base_url="https://api.z.ai/api/coding/paas/v4"
+    )
 
     try:
         start_time = time.time()
-        response = requests.post(url, headers=headers, json=payload)
+        # Ping check using a known working model for this plan
+        response = client.chat.completions.create(
+            model="glm-4.7",
+            messages=[{"role": "user", "content": "ping"}],
+            max_tokens=6,
+        )
         end_time = time.time()
         
-        # Calculate latency in milliseconds
         latency_ms = int((end_time - start_time) * 1000)
-        
-        # DEBUG: Print the response content for debugging 400 errors
-        if response.status_code >= 400:
-             print(f"DEBUG: API Error {response.status_code}", file=sys.stderr)
-             print(f"DEBUG: Response Body: {response.text}", file=sys.stderr)
-
-        response.raise_for_status()
-        
-        # If we get here, the API is working
         api_status = "Operational"
-        
-        # Construct the final JSON structure for the dashboard
+
         output = {
             "lastUpdated": time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime()),
             "quotas": [
@@ -82,7 +42,7 @@ def main():
                     "used": api_status,
                     "limit": 0,
                     "unit_text": "State",
-                    "tooltip": "Verifies that your API Key is working via glm-4-flash."
+                    "tooltip": "Verifies that your API Key is working via glm-4.7."
                 },
                 {
                     "title": "Latency",
@@ -93,19 +53,26 @@ def main():
                 },
                 {
                     "title": "Model Reachability",
-                    "used": "GLM-4 Flash",
+                    "used": "GLM-4.7",
                     "limit": 0,
                     "unit_text": "Verified",
-                    "tooltip": "Successfully connected to the GLM-4 Flash model."
+                    "tooltip": "Successfully connected to the GLM-4.7 model."
                 }
             ]
         }
-
         print(json.dumps(output, indent=4))
+
+    except Exception as e:
+        print(f"API Error: {e}", file=sys.stderr)
         
-    except requests.exceptions.HTTPError as e:
-        print(f"HTTP Error: {e}", file=sys.stderr)
-        # Output a "Down" status to the dashboard
+        status_code = "Error"
+        # Try to extract a meaningful error code
+        # ZhipuAI exceptions often have a 'code' or 'status_code' attribute
+        if hasattr(e, 'status_code'):
+             status_code = str(e.status_code)
+        elif hasattr(e, 'code'):
+             status_code = str(e.code)
+             
         output = {
             "lastUpdated": time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime()),
             "quotas": [
@@ -113,23 +80,19 @@ def main():
                     "title": "API Status",
                     "used": "Error",
                     "limit": 0,
-                    "unit_text": str(e.response.status_code)
+                    "unit_text": status_code
                 },
                 {
-                    "title": "Error Details",
+                    "title": "Error Message",
                     "used": "Check Logs",
                     "limit": 0,
-                    "unit_text": "Action Logs",
-                    "tooltip": "See GitHub Action logs for full error details."
+                    "unit_text": "See Console",
+                    "tooltip": str(e)[:100] # Truncate long error messages for tooltip
                 }
             ]
         }
         print(json.dumps(output, indent=4))
-        sys.exit(0) 
-        
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
+        sys.exit(0)
 
 if __name__ == "__main__":
     main()
