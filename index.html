@@ -21,9 +21,12 @@
                 <h1>Z.ai Dashboard</h1>
             </div>
             <div class="status-pill">
-                <i class="fa-solid fa-rotate"></i>
+                <i class="fa-solid fa-rotate" id="spinner-icon"></i>
                 <span id="last-updated">Updating...</span>
             </div>
+            <button id="refresh-btn" class="refresh-btn">
+                <i class="fa-solid fa-sync"></i> Refresh Data
+            </button>
         </header>
         <main id="dashboard-container">
             <!-- Quota cards will be dynamically inserted here by JavaScript -->

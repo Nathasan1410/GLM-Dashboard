@@ -1,6 +1,59 @@
 document.addEventListener('DOMContentLoaded', () => {
     fetchUsageData();
+    setupRefreshButton();
 });
+
+function setupRefreshButton() {
+    const btn = document.getElementById('refresh-btn');
+    btn.addEventListener('click', async () => {
+        const repoOwner = 'Nathasan1410';
+        const repoName = 'GLM-Dashboard';
+
+        // 1. Get PAT from local storage or prompt user
+        let pat = localStorage.getItem('gh_pat');
+        if (!pat) {
+            pat = prompt("To refresh data from here, please enter your GitHub Personal Access Token (PAT):");
+            if (pat) {
+                localStorage.setItem('gh_pat', pat);
+            } else {
+                return;
+            }
+        }
+
+        // 2. Trigger Workflow
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Triggering...';
+
+        try {
+            const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/actions/workflows/update-dashboard.yml/dispatches`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${pat}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                },
+                body: JSON.stringify({ ref: 'main' })
+            });
+
+            if (response.ok) {
+                alert('Update started! The dashboard will refresh automatically in about 1-2 minutes.');
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Started';
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-sync"></i> Refresh Data';
+                }, 5000);
+            } else {
+                const err = await response.json();
+                throw new Error(err.message || 'Failed to trigger workflow');
+            }
+        } catch (error) {
+            console.error(error);
+            alert(`Error: ${error.message}. Check your PAT and try again.`);
+            localStorage.removeItem('gh_pat'); // Clear invalid token
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-sync"></i> Refresh Data';
+        }
+    });
+}
 
 async function fetchUsageData() {
     const container = document.getElementById('dashboard-container');
