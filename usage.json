@@ -1,21 +1,9 @@
 {
-    "lastUpdated": "2023-10-27T12:00:00+00:00",
-    "quotas": [
-        {
-            "title": "Total Tokens",
-            "tooltip": "Total tokens used this month",
-            "used": 150000,
-            "limit": 500000,
-            "unit_text": "tokens",
-            "resetTime": "2023-11-01T00:00:00+00:00"
-        },
-        {
-            "title": "API Requests",
-            "tooltip": "Number of API calls",
-            "used": 450,
-            "limit": 1000,
-            "unit_text": "requests",
-            "resetTime": "2023-11-01T00:00:00+00:00"
-        }
-    ]
+  "lastUpdated": "2026-02-11T17:24:34+0000",
+  "quotas": {
+    "timestamp": "2026-02-11T17:24:34.187+00:00",
+    "status": 404,
+    "error": "Not Found",
+    "path": "/v4/usage"
+  }
 }
