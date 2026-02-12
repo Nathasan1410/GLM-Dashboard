@@ -5,8 +5,10 @@ import time
 
 try:
     from zhipuai import ZhipuAI
-except ImportError:
-    print("Error: zhipuai module not found. Install it with `pip install zhipuai`", file=sys.stderr)
+except Exception as e:
+    print(f"Error importing zhipuai: {type(e).__name__}: {e}", file=sys.stderr)
+    import traceback
+    traceback.print_exc(file=sys.stderr)
     sys.exit(1)
 
 def main():
