@@ -1,18 +1,26 @@
 {
-    "lastUpdated": "2026-02-14T23:45:38+0000",
+    "lastUpdated": "2026-02-15T01:45:44+0000",
     "quotas": [
         {
             "title": "API Status",
-            "used": "Error",
+            "used": "Operational",
             "limit": 0,
-            "unit_text": "429"
+            "unit_text": "State",
+            "tooltip": "Verifies that your API Key is working via glm-4.7."
         },
         {
-            "title": "Error Message",
-            "used": "Check Logs",
+            "title": "Latency",
+            "used": 1144,
+            "limit": 1000,
+            "unit_text": "ms",
+            "tooltip": "Round-trip time to generate a response."
+        },
+        {
+            "title": "Model Reachability",
+            "used": "GLM-4.7",
             "limit": 0,
-            "unit_text": "See Console",
-            "tooltip": "Error code: 429, with error text {\"error\":{\"code\":\"1308\",\"message\":\"Usage limit reached for 5 hour. "
+            "unit_text": "Verified",
+            "tooltip": "Successfully connected to the GLM-4.7 model."
         }
     ]
 }
