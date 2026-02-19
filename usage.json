@@ -1,18 +1,26 @@
 {
-    "lastUpdated": "2026-02-19T19:50:21+0000",
+    "lastUpdated": "2026-02-19T20:25:14+0000",
     "quotas": [
         {
             "title": "API Status",
-            "used": "Error",
+            "used": "Operational",
             "limit": 0,
-            "unit_text": "Error"
+            "unit_text": "State",
+            "tooltip": "Verifies that your API Key is working via glm-4.7."
         },
         {
-            "title": "Error Message",
-            "used": "Check Logs",
+            "title": "Latency",
+            "used": 1242,
+            "limit": 1000,
+            "unit_text": "ms",
+            "tooltip": "Round-trip time to generate a response."
+        },
+        {
+            "title": "Model Reachability",
+            "used": "GLM-4.7",
             "limit": 0,
-            "unit_text": "See Console",
-            "tooltip": "Connection error."
+            "unit_text": "Verified",
+            "tooltip": "Successfully connected to the GLM-4.7 model."
         }
     ]
 }
