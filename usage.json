@@ -1,5 +1,5 @@
 {
-    "lastUpdated": "2026-02-22T18:27:03+0000",
+    "lastUpdated": "2026-02-22T19:00:35+0000",
     "quotas": [
         {
             "title": "API Status",
@@ -10,7 +10,7 @@
         },
         {
             "title": "Latency",
-            "used": 2053,
+            "used": 1535,
             "limit": 1000,
             "unit_text": "ms",
             "tooltip": "Round-trip time to generate a response."
