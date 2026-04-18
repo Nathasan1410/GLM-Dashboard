@@ -1,18 +1,18 @@
 {
-    "lastUpdated": "2026-04-18T19:40:58+0000",
+    "lastUpdated": "2026-04-18T20:05:14+0000",
     "quotas": [
         {
             "title": "API Status",
             "used": "Error",
             "limit": 0,
-            "unit_text": "Error"
+            "unit_text": "429"
         },
         {
             "title": "Error Message",
             "used": "Check Logs",
             "limit": 0,
             "unit_text": "See Console",
-            "tooltip": "Connection error."
+            "tooltip": "Error code: 429, with error text {\"error\":{\"code\":\"1113\",\"message\":\"Insufficient balance or no resou"
         }
     ]
 }
